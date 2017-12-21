@@ -644,3 +644,55 @@ footer {
   padding-top: 10px;
   border-top: 1px solid #eee;
 }
+
+.code-explorer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.card {
+    min-width: 220px;
+    display: block;
+    background: white;
+    box-shadow:
+        0 1px 3px rgba(80, 100, 140, .1),
+        0 8px 15px rgba(80, 100, 140, .05);
+}
+
+.card > .card-footer,
+.card > .card-title {
+    padding: 12px 16px;
+    white-space: no-wrap;
+    font-size: 0.8333333333333334em;
+}
+
+@media (max-width: 480px) {
+    .card > .card-footer,
+    .card > .card-title {
+        padding: 6px 16px;
+        font-size: 0.9090909090909091em;
+    }
+}
+
+.card > .card-title {
+    text-decoration: none;
+    color: #203040;
+    font-weight: 700;
+}
+
+.card > .card-content {
+    border-top: solid 1px #eee;
+    border-bottom: solid 1px #eee;
+    font-size: 3em;
+    text-align: center;
+    padding: 16px;
+}
+
+/*
+ * Frame details
+ */
+
+.card-footer {
+    color: #607080;
+    text-align: right;
+}

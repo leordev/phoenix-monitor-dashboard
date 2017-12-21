@@ -65,17 +65,17 @@ type alias Model =
 metricsDecoder : Decoder Metrics
 metricsDecoder =
     map5 Metrics
-        (field "cpuUsage" float)
-        (field "memoryUsage" int)
-        (field "memoryTotal" int)
-        (field "httpRequests"
+        (field "cpu_usage" float)
+        (field "memory_usage" int)
+        (field "memory_total" int)
+        (field "http_requests"
             (list
                 (map5 HttpRequest
                     (field "time" int)
                     (field "status" int)
                     (field "path" string)
                     (field "method" string)
-                    (field "durationMs" int)
+                    (field "duration_ms" int)
                 )
             )
         )
@@ -123,13 +123,38 @@ getMetricsCmd =
 -- view
 
 
-viewTop : Html Msg
-viewTop =
-    div [ class "top-details" ]
-        [ aside [ class "exception-logo" ] []
-        , header [ class "exception-info" ]
-            [ h1 [ class "title" ] [ text "Phoenix Monitor Dashboard" ] ]
+viewCard : String -> String -> String -> Html Msg
+viewCard title content footer =
+    div [ class "card" ]
+        [ div [ class "card-title" ] [ text title ]
+        , div [ class "card-content" ] [ text content ]
+        , div [ class "card-footer" ] [ text footer ]
         ]
+
+
+viewTop : Model -> Html Msg
+viewTop model =
+    let
+        metrics =
+            model.metrics
+    in
+        div [ class "top-details" ]
+            [ aside [ class "exception-logo" ] []
+            , header [ class "exception-info" ]
+                [ h1 [ class "title" ] [ text "Phoenix Monitor Dashboard" ] ]
+            , div [ class "code-explorer" ]
+                [ viewCard "CPU Usage"
+                    ((toString (metrics.cpuUsage * 100)) ++ "%")
+                    ("out of 100%")
+                , viewCard
+                    "Memory Usage"
+                    (toString metrics.memoryUsage)
+                    ("out of " ++ (toString metrics.memoryTotal))
+                , viewCard "Total Requests"
+                    (toString (List.length metrics.httpRequests))
+                    "avg response of 4ms"
+                ]
+            ]
 
 
 viewBottom : Html Msg
@@ -150,4 +175,4 @@ viewBottom =
 view : Model -> Html Msg
 view model =
     div []
-        [ viewTop, viewBottom ]
+        [ viewTop model, viewBottom ]
