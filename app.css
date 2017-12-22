@@ -692,7 +692,56 @@ footer {
  * Frame details
  */
 
+ a {
+   cursor: pointer;
+ }
+
+ tr {
+   padding: 6px;
+   border-bottom: 1px solid #eee;
+ }
+
+ th {
+   padding: 6px;
+   text-align: left;
+   font-weight: 700px;
+ }
+
+ td {
+   padding: 6px;
+ }
+
+.bottom-container {
+  padding: 20px;
+}
+
+.bottom-item-selected {
+  font-weight: 700;
+  border-bottom: 3px solid #EB532D;
+  padding-bottom: 5px;
+  margin: 10px;
+}
+
+.bottom-container a {
+  color: #EB532D;
+  margin: 10px;
+}
+
+.bottom-content {
+  margin: 10px;
+}
+
 .card-footer {
     color: #607080;
     text-align: right;
+}
+
+.logs {
+  overflow-y: auto;
+  max-height: 380px;
+}
+
+.requests {
+  overflow-y: auto;
+  max-height: 380px;
 }

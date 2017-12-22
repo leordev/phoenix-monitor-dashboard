@@ -2,8 +2,14 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder, list, field, string, map5, float, int, maybe)
+import Time
+import Date
+import Date.Extra.Core as DateCore
+import Date.Extra.Format as DateFormat
+import Date.Extra.Config.Config_en_us as DateConfig
 
 
 -- initialization
@@ -16,7 +22,11 @@ init =
 
 initModel : Model
 initModel =
-    { metrics = Metrics 0.0 0 0 [] "", isLoading = True, error = Nothing }
+    { metrics = Metrics 0.0 0 0 [] ""
+    , bottomContent = Requests
+    , isLoading = True
+    , error = Nothing
+    }
 
 
 main : Program Never Model Msg
@@ -51,8 +61,14 @@ type alias Metrics =
     }
 
 
+type BottomContent
+    = Requests
+    | Logs
+
+
 type alias Model =
     { metrics : Metrics
+    , bottomContent : BottomContent
     , isLoading : Bool
     , error : Maybe String
     }
@@ -88,6 +104,7 @@ metricsDecoder =
 
 type Msg
     = Refresh
+    | SetBottomContent BottomContent
     | MetricsResponse (Result Http.Error Metrics)
 
 
@@ -108,6 +125,9 @@ update msg model =
               }
             , Cmd.none
             )
+
+        SetBottomContent content ->
+            ( { model | bottomContent = content }, Cmd.none )
 
 
 getMetricsCmd : Cmd Msg
@@ -157,22 +177,89 @@ viewTop model =
             ]
 
 
-viewBottom : Html Msg
-viewBottom =
-    div [ class "conn-info" ]
-        [ details [ class "conn-details" ]
-            [ summary [] [ text "Server Log" ]
-            , dl [] [ text "log goes here" ]
-            ]
-        , footer []
-            [ text "Just a little play by Leo Ribeiro "
-            , a [ href "http://github.com/leordev/phoenix-monitor-dashboard" ]
-                [ text "GitHub" ]
-            ]
+bottomButton : Model -> String -> BottomContent -> Html Msg
+bottomButton model name action =
+    if model.bottomContent == action then
+        span [ class "bottom-item-selected" ] [ text name ]
+    else
+        a [ onClick (SetBottomContent action) ]
+            [ text name ]
+
+
+formatTime : Int -> String
+formatTime time =
+    Debug.log "testing time " (round ((toFloat time) / 1000000))
+        |> DateCore.fromTime
+        |> DateFormat.format DateConfig.config "%d-%m-%y at %H:%M:%S.%L"
+        |> Debug.log "current time "
+
+
+listRequests : List HttpRequest -> List (Html Msg)
+listRequests requests =
+    requests
+        |> List.map
+            (\req ->
+                tr []
+                    [ td [] [ text (formatTime req.time) ]
+                    , td [] [ text req.method ]
+                    , td [] [ text (toString req.status) ]
+                    , td [] [ text req.path ]
+                    , td [] [ text (toString req.durationMs) ]
+                    ]
+            )
+
+
+bottomContent : Model -> Html Msg
+bottomContent model =
+    div [ class "bottom-content" ]
+        [ case model.bottomContent of
+            Requests ->
+                div [ class "requests" ]
+                    [ table []
+                        [ thead []
+                            [ tr []
+                                [ th [] [ text "Time" ]
+                                , th [] [ text "Method" ]
+                                , th [] [ text "Status" ]
+                                , th [] [ text "Path" ]
+                                , th [] [ text "Duration (ms)" ]
+                                ]
+                            ]
+                        , tbody [] (listRequests model.metrics.httpRequests)
+                        ]
+                    ]
+
+            Logs ->
+                div [ class "logs" ]
+                    [ pre [] [ text model.metrics.log ] ]
         ]
+
+
+viewBottom : Model -> Html Msg
+viewBottom model =
+    let
+        requestsButton =
+            bottomButton model "Requests" Requests
+
+        logsButton =
+            bottomButton model "Logs" Logs
+
+        content =
+            bottomContent model
+    in
+        div [ class "bottom-container" ]
+            [ requestsButton
+            , logsButton
+            , content
+            , footer []
+                [ text "Just a little play by Leo Ribeiro "
+                , a [ href "http://github.com/leordev/phoenix-monitor-dashboard" ]
+                    [ text "GitHub" ]
+                ]
+            ]
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ viewTop model, viewBottom ]
+        [ viewTop model, viewBottom model ]
